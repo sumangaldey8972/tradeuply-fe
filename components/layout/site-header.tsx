@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About Us" },
+  { href: "/#about", label: "About Us" },
+  { href: "/#plans", label: "Plans" },
   { href: "/faqs", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -52,7 +53,7 @@ export function SiteHeader() {
               <Link
                 aria-current={index === 0 ? "page" : undefined}
                 className={cn(
-                  "min-w-[7.2rem] rounded-xl px-5 py-3 text-center text-[length:var(--text-nav)] font-semibold transition",
+                  "min-w-[6.2rem] rounded-xl px-4 py-3 text-center text-[length:var(--text-nav)] font-semibold transition",
                   index === 0
                     ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)]"
                     : "text-[var(--color-ink-soft)] hover:bg-slate-100 hover:text-[var(--color-ink)]",
