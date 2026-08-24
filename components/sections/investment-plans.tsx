@@ -95,11 +95,10 @@ export function InvestmentPlans() {
 
             return (
               <article
-                className={`relative flex min-h-full flex-col overflow-hidden rounded-[1.8rem] border p-6 transition duration-300 hover:-translate-y-1 sm:p-8 ${
-                  isFeatured
+                className={`relative flex min-h-full flex-col overflow-hidden rounded-[1.8rem] border p-6 transition duration-300 hover:-translate-y-1 sm:p-8 ${isFeatured
                     ? "border-[var(--color-brand)] bg-[var(--color-ink)] text-white shadow-[0_26px_70px_rgba(3,26,59,0.18)]"
                     : "border-[var(--color-border)] bg-[#f8faf9] text-[var(--color-ink)] shadow-[0_16px_50px_rgba(18,45,72,0.05)] hover:shadow-[0_24px_60px_rgba(18,45,72,0.1)]"
-                }`}
+                  }`}
                 key={plan.name}
               >
                 {isFeatured && (
@@ -110,11 +109,10 @@ export function InvestmentPlans() {
 
                 <div className="flex items-center gap-4">
                   <span
-                    className={`grid size-12 shrink-0 place-items-center rounded-2xl ${
-                      isFeatured
+                    className={`grid size-12 shrink-0 place-items-center rounded-2xl ${isFeatured
                         ? "bg-white/10 text-[#62e6a4]"
                         : "bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)]"
-                    }`}
+                      }`}
                   >
                     <Icon aria-hidden="true" size={25} weight="duotone" />
                   </span>
@@ -167,11 +165,10 @@ export function InvestmentPlans() {
                 </ul>
 
                 <a
-                  className={`mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold transition hover:-translate-y-0.5 ${
-                    isFeatured
+                  className={`mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold transition hover:-translate-y-0.5 ${isFeatured
                       ? "bg-[var(--color-brand)] text-white hover:bg-[#08c971]"
                       : "border border-[var(--color-border)] bg-white text-[var(--color-ink)] hover:border-[var(--color-brand)]"
-                  }`}
+                    }`}
                   href="/register"
                 >
                   Choose {plan.name}
@@ -181,14 +178,6 @@ export function InvestmentPlans() {
             );
           })}
         </div>
-
-        <aside className="mt-8 rounded-2xl border border-[var(--color-border)] bg-[#f8faf9] px-5 py-4 text-center text-xs leading-5 font-semibold text-[var(--color-text-muted)] sm:px-8">
-          <strong className="text-[var(--color-ink)]">Important:</strong> Daily
-          objective figures are illustrative projections, not guaranteed returns. Investment
-          values can rise or fall, and capital may be at risk. Final rates and plan
-          terms are subject to eligibility, legal documentation, and regional
-          availability.
-        </aside>
       </Container>
     </section>
   );
