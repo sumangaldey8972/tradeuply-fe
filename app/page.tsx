@@ -1,5 +1,3 @@
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { HomeHero } from "@/components/sections/home-hero";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { InvestmentApproach } from "@/components/sections/investment-approach";
@@ -11,19 +9,15 @@ import { WhyTradeUply } from "@/components/sections/why-tradeuply";
 
 export default function HomePage() {
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <HomeHero />
-        <WhyTradeUply />
-        <MarketsExplorer />
-        <InvestmentApproach />
-        <InvestmentPlans />
-        <ProfitCalculator />
-        <SecurityTransparency />
-        <HowItWorks />
-      </main>
-      <SiteFooter />
-    </>
+    <main>
+      <HomeHero />
+      <WhyTradeUply />
+      <MarketsExplorer />
+      <InvestmentApproach />
+      <InvestmentPlans />
+      <ProfitCalculator />
+      <SecurityTransparency />
+      <HowItWorks />
+    </main>
   );
 }
