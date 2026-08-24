@@ -10,76 +10,58 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { Container } from "@/components/ui/container";
+import { formatUsd, investmentPlanTerms } from "@/data/investment-plans";
 
-const investmentPlans = [
+const investmentPlanDetails = [
   {
     allocation: "Cash reserves · Short-term bonds",
     description: "A measured starting point focused on stability and lower volatility.",
     features: ["Diversified defensive assets", "Quarterly portfolio review", "Simple performance reporting"],
-    horizon: "3+ months",
+    id: "essential",
     icon: ShieldCheck,
-    minimum: "$100",
-    name: "Essential",
-    objective: "3–5%",
-    risk: "Lower",
   },
   {
     allocation: "Government bonds · Dividend assets",
     description: "Designed for investors seeking a steadier approach with an income focus.",
     features: ["Income-oriented allocation", "Risk-aware diversification", "Quarterly portfolio review"],
-    horizon: "6+ months",
+    id: "income",
     icon: Coins,
-    minimum: "$500",
-    name: "Income",
-    objective: "5–7%",
-    risk: "Low–moderate",
   },
   {
     allocation: "Global equities · Bonds · Cash",
     badge: "Most popular",
     description: "A diversified mix created to balance long-term growth and portfolio stability.",
     features: ["Multi-asset diversification", "Monthly portfolio review", "Automatic rebalancing"],
-    horizon: "12+ months",
+    id: "balanced",
     icon: ChartDonut,
-    minimum: "$1,000",
-    name: "Balanced",
-    objective: "7–10%",
-    risk: "Moderate",
   },
   {
     allocation: "International equities · Market themes",
     description: "Broader exposure to established companies and growing sectors worldwide.",
     features: ["Global market allocation", "Growth-focused strategy", "Monthly portfolio review"],
-    horizon: "18+ months",
+    id: "global-growth",
     icon: Globe,
-    minimum: "$5,000",
-    name: "Global Growth",
-    objective: "9–13%",
-    risk: "Moderate–high",
   },
   {
     allocation: "Technology · Innovation · Digital assets",
     description: "A higher-volatility strategy focused on innovation-led markets and emerging themes.",
     features: ["Innovation-led exposure", "Defined allocation limits", "Active risk monitoring"],
-    horizon: "24+ months",
+    id: "future-focus",
     icon: Sparkle,
-    minimum: "$2,500",
-    name: "Future Focus",
-    objective: "12–18%",
-    risk: "Higher",
   },
   {
     allocation: "Personalized multi-asset portfolio",
-    description: "A tailored investment approach for larger portfolios and longer-term objectives.",
+    description: "A tailored investment approach for larger portfolios with individualized allocation and review.",
     features: ["Personalized asset mix", "Dedicated portfolio reviews", "Priority client support"],
-    horizon: "24+ months",
+    id: "wealth-select",
     icon: Leaf,
-    minimum: "$25,000",
-    name: "Wealth Select",
-    objective: "Tailored",
-    risk: "Personalized",
   },
 ] as const;
+
+const investmentPlans = investmentPlanDetails.map((details) => ({
+  ...details,
+  ...investmentPlanTerms.find((terms) => terms.id === details.id)!,
+}));
 
 export function InvestmentPlans() {
   return (
@@ -138,7 +120,7 @@ export function InvestmentPlans() {
                   </span>
                   <div>
                     <p className={`text-xs font-bold ${isFeatured ? "text-white/55" : "text-[var(--color-text-muted)]"}`}>
-                      Starting from {plan.minimum}
+                      Starting from {formatUsd(plan.minimum)}
                     </p>
                     <h3 className="mt-1 text-xl font-extrabold tracking-[-0.03em]">{plan.name}</h3>
                   </div>
@@ -151,17 +133,17 @@ export function InvestmentPlans() {
                 <dl className={`mt-6 grid grid-cols-3 divide-x rounded-2xl p-4 text-center ${isFeatured ? "divide-white/10 bg-white/[0.07]" : "divide-slate-200 bg-white"}`}>
                   <div className="px-1">
                     <dt className={`text-[0.64rem] font-extrabold tracking-[0.08em] uppercase ${isFeatured ? "text-white/45" : "text-[var(--color-text-muted)]"}`}>
-                      Objective
+                      Daily objective
                     </dt>
                     <dd className={`mt-2 text-sm font-extrabold ${isFeatured ? "text-[#62e6a4]" : "text-[var(--color-brand-hover)]"}`}>
-                      {plan.objective}
+                      {plan.objective}%
                     </dd>
                   </div>
                   <div className="px-1">
                     <dt className={`text-[0.64rem] font-extrabold tracking-[0.08em] uppercase ${isFeatured ? "text-white/45" : "text-[var(--color-text-muted)]"}`}>
                       Horizon
                     </dt>
-                    <dd className="mt-2 text-sm font-extrabold">{plan.horizon}</dd>
+                    <dd className="mt-2 text-sm font-extrabold">{plan.horizonDays} days</dd>
                   </div>
                   <div className="px-1">
                     <dt className={`text-[0.64rem] font-extrabold tracking-[0.08em] uppercase ${isFeatured ? "text-white/45" : "text-[var(--color-text-muted)]"}`}>
@@ -201,10 +183,11 @@ export function InvestmentPlans() {
         </div>
 
         <aside className="mt-8 rounded-2xl border border-[var(--color-border)] bg-[#f8faf9] px-5 py-4 text-center text-xs leading-5 font-semibold text-[var(--color-text-muted)] sm:px-8">
-          <strong className="text-[var(--color-ink)]">Important:</strong> Objective
-          ranges are illustrative annual targets, not guaranteed returns. Investment
-          values can rise or fall, and capital may be at risk. Final plan terms are
-          subject to eligibility, legal documentation, and regional availability.
+          <strong className="text-[var(--color-ink)]">Important:</strong> Daily
+          objective figures are illustrative projections, not guaranteed returns. Investment
+          values can rise or fall, and capital may be at risk. Final rates and plan
+          terms are subject to eligibility, legal documentation, and regional
+          availability.
         </aside>
       </Container>
     </section>

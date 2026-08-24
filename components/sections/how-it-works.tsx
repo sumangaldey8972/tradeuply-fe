@@ -48,7 +48,7 @@ export function HowItWorks() {
   return (
     <section
       aria-labelledby="how-it-works-title"
-      className="relative scroll-mt-28 overflow-hidden bg-[#f4f8f6] py-20 sm:py-24 lg:py-32"
+      className="relative scroll-mt-28 overflow-hidden bg-white py-20 sm:py-24 lg:py-32"
       id="how-it-works"
     >
       <div
