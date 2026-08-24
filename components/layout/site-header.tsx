@@ -3,20 +3,22 @@
 import { List, X } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { href: "/", label: "Home" },
-  { href: "/#about", label: "About Us" },
-  { href: "/faqs", label: "FAQ" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home", path: "/" },
+  { href: "/about", label: "About Us", path: "/about" },
+  { href: "/faqs", label: "FAQ", path: "/faqs" },
+  { href: "/contact", label: "Contact", path: "/contact" },
 ] as const;
 
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -24,6 +26,10 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  function isNavigationItemActive(item: (typeof navigation)[number]) {
+    return pathname === item.path;
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-4 sm:pt-5">
@@ -48,21 +54,25 @@ export function SiteHeader() {
             aria-label="Primary navigation"
             className="hidden items-center gap-1 rounded-2xl border border-[var(--color-border)] bg-white/62 p-1.5 lg:flex"
           >
-            {navigation.map((item, index) => (
-              <Link
-                aria-current={index === 0 ? "page" : undefined}
-                className={cn(
-                  "min-w-[6.2rem] rounded-xl px-4 py-3 text-center text-[length:var(--text-nav)] font-semibold transition",
-                  index === 0
-                    ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)]"
-                    : "text-[var(--color-ink-soft)] hover:bg-slate-100 hover:text-[var(--color-ink)]",
-                )}
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = isNavigationItemActive(item);
+
+              return (
+                <Link
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "min-w-[6.2rem] rounded-xl px-4 py-3 text-center text-[length:var(--text-nav)] font-semibold transition",
+                    isActive
+                      ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)]"
+                      : "text-[var(--color-ink-soft)] hover:bg-slate-100 hover:text-[var(--color-ink)]",
+                  )}
+                  href={item.href}
+                  key={item.href}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
@@ -104,16 +114,26 @@ export function SiteHeader() {
         id="mobile-navigation"
       >
         <div className="grid gap-1">
-          {navigation.map((item) => (
-            <Link
-              className="rounded-xl px-4 py-3.5 text-base font-bold text-[var(--color-ink-soft)] transition hover:bg-slate-100 hover:text-[var(--color-ink)]"
-              href={item.href}
-              key={item.href}
-              onClick={() => setIsOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navigation.map((item) => {
+            const isActive = isNavigationItemActive(item);
+
+            return (
+              <Link
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "rounded-xl px-4 py-3.5 text-base font-bold transition",
+                  isActive
+                    ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)]"
+                    : "text-[var(--color-ink-soft)] hover:bg-slate-100 hover:text-[var(--color-ink)]",
+                )}
+                href={item.href}
+                key={item.href}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
         <div className="mt-4 grid gap-3 border-t border-slate-200 pt-5 sm:grid-cols-2">
           <Link

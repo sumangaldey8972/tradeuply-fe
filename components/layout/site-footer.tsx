@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Container } from "@/components/ui/container";
+import { companyOffices, officeAddressNotice, supportEmail } from "@/data/company";
 
 const footerNavigation = [
   {
@@ -22,10 +23,10 @@ const footerNavigation = [
   },
   {
     links: [
-      { href: "/#about", label: "About Us" },
+      { href: "/about", label: "About Us" },
       { href: "/faqs", label: "FAQ" },
       { href: "/contact", label: "Contact Us" },
-      { href: "mailto:trade@tradeuply.com", label: "Support" },
+      { href: `mailto:${supportEmail}`, label: "Support" },
     ],
     title: "Company",
   },
@@ -37,22 +38,6 @@ const legalPages = [
   "Risk Disclosure",
   "KYC / AML Policy",
   "Cookie Policy",
-] as const;
-
-const offices = [
-  {
-    address: "TradeUply House, 88 Finance Park Road, Bengaluru, Karnataka 560001, India",
-    badge: "Headquarters",
-    country: "India",
-  },
-  {
-    address: "TradeUply UK, 42 Market Square, London EC2A 4NE, United Kingdom",
-    country: "United Kingdom",
-  },
-  {
-    address: "TradeUply UAE, Office 1204, Business Bay, Dubai, United Arab Emirates",
-    country: "United Arab Emirates",
-  },
 ] as const;
 
 export function SiteFooter() {
@@ -151,15 +136,15 @@ export function SiteFooter() {
             </div>
             <a
               className="inline-flex items-center gap-2 text-sm font-extrabold text-white transition hover:text-[#67e4a7]"
-              href="mailto:trade@tradeuply.com"
+              href={`mailto:${supportEmail}`}
             >
               <EnvelopeSimple aria-hidden="true" size={19} weight="duotone" />
-              trade@tradeuply.com
+              {supportEmail}
             </a>
           </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
-            {offices.map((office) => (
+            {companyOffices.map((office) => (
               <article
                 className="relative rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5 sm:p-6"
                 key={office.country}
@@ -185,6 +170,9 @@ export function SiteFooter() {
               </article>
             ))}
           </div>
+          <p className="mt-5 text-xs leading-5 font-semibold text-[#e1bd74]">
+            Preview notice: {officeAddressNotice}
+          </p>
         </section>
 
         <div className="flex flex-col gap-4 border-t border-white/10 pt-7 text-xs font-semibold text-white/38 sm:flex-row sm:items-center sm:justify-between">

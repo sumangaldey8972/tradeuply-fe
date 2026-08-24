@@ -4,15 +4,17 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  CheckCircle,
+  CircleNotch,
   Eye,
   EyeSlash,
   LockKey,
   ShieldCheck,
-  WarningCircle,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   getPasswordStrength,
   type RegistrationData,
@@ -37,12 +39,33 @@ const initialData: RegistrationData = {
 
 const steps = ["Personal details", "Account security", "Investor profile"] as const;
 
+const investmentRangeOptions = [
+  { label: "$100–$999", value: "$100–$999" },
+  { label: "$1,000–$4,999", value: "$1,000–$4,999" },
+  { label: "$5,000–$24,999", value: "$5,000–$24,999" },
+  { label: "$25,000+", value: "$25,000+" },
+] as const;
+
+const experienceOptions = [
+  { label: "New investor", value: "New investor" },
+  { label: "Some experience", value: "Some experience" },
+  { label: "Experienced", value: "Experienced" },
+] as const;
+
+const objectiveOptions = [
+  { label: "Short-term opportunity", value: "Short-term opportunity" },
+  { label: "Portfolio diversification", value: "Portfolio diversification" },
+  { label: "Income generation", value: "Income generation" },
+  { label: "Capital growth", value: "Capital growth" },
+] as const;
+
 export function RegisterForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<RegistrationData>(initialData);
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -75,8 +98,11 @@ export function RegisterForm() {
     setCurrentStep((step) => Math.max(step - 1, 1));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) return;
+
     const nextErrors = validateRegistrationStep(3, data);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -85,8 +111,15 @@ export function RegisterForm() {
     }
 
     setErrors({});
-    setSubmitted(true);
-    setData((current) => ({ ...current, confirmPassword: "", password: "" }));
+    setIsSubmitting(true);
+
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 1600));
+      setSubmitted(true);
+      setData((current) => ({ ...current, confirmPassword: "", password: "" }));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const passwordStrength = getPasswordStrength(data.password);
@@ -110,8 +143,8 @@ export function RegisterForm() {
       <ol aria-label="Registration progress" className="mt-8 grid grid-cols-3 gap-2">
         {steps.map((label, index) => {
           const stepNumber = index + 1;
-          const isActive = currentStep === stepNumber;
-          const isComplete = currentStep > stepNumber;
+          const isActive = !submitted && currentStep === stepNumber;
+          const isComplete = submitted || currentStep > stepNumber;
 
           return (
             <li aria-current={isActive ? "step" : undefined} key={label}>
@@ -129,13 +162,43 @@ export function RegisterForm() {
         })}
       </ol>
 
-      <form className="mt-9" noValidate onSubmit={handleSubmit}>
+      {submitted ? (
+        <div
+          aria-live="polite"
+          className="mt-10 flex min-h-[25rem] flex-col items-center justify-center rounded-[1.75rem] border border-[var(--color-brand)]/20 bg-[linear-gradient(145deg,#f3fbf7_0%,#ffffff_70%)] px-6 py-12 text-center"
+          role="status"
+        >
+          <span className="grid size-20 place-items-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand-hover)] shadow-[0_18px_45px_rgba(6,184,102,0.16)]">
+            <CheckCircle aria-hidden="true" size={45} weight="fill" />
+          </span>
+          <p className="mt-7 text-xs font-extrabold tracking-[0.18em] text-[var(--color-brand-hover)] uppercase">
+            Registration complete
+          </p>
+          <h3 className="mt-3 text-balance text-3xl font-extrabold tracking-[-0.04em] text-[var(--color-ink)]">
+            Welcome to TradeUply, {data.firstName}.
+          </h3>
+          <p className="mt-4 max-w-md text-sm leading-7 font-medium text-[var(--color-text-muted)]">
+            Your account registration has been completed successfully. You can now continue to the login page.
+          </p>
+          <Link
+            className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-7 text-sm font-extrabold text-white shadow-[0_14px_34px_rgba(6,184,102,0.2)] transition hover:-translate-y-0.5 hover:bg-[var(--color-brand-hover)]"
+            href="/login"
+          >
+            Continue to Log In
+            <ArrowRight aria-hidden="true" size={17} weight="bold" />
+          </Link>
+          <p className="mt-5 text-xs font-semibold text-[var(--color-text-muted)]">
+            Demo mode: connect the registration API before launch.
+          </p>
+        </div>
+      ) : (
+      <form aria-busy={isSubmitting} className="mt-9" noValidate onSubmit={handleSubmit}>
         <h3 className="sr-only" ref={stepHeadingRef} tabIndex={-1}>
           Step {currentStep}: {steps[currentStep - 1]}
         </h3>
 
         {currentStep === 1 && (
-          <fieldset>
+          <fieldset disabled={isSubmitting}>
             <legend className="text-lg font-extrabold tracking-[-0.025em] text-[var(--color-ink)]">
               Tell us about yourself
             </legend>
@@ -155,7 +218,7 @@ export function RegisterForm() {
         )}
 
         {currentStep === 2 && (
-          <fieldset>
+          <fieldset disabled={isSubmitting}>
             <legend className="text-lg font-extrabold tracking-[-0.025em] text-[var(--color-ink)]">
               Secure your account
             </legend>
@@ -191,7 +254,7 @@ export function RegisterForm() {
         )}
 
         {currentStep === 3 && (
-          <fieldset>
+          <fieldset disabled={isSubmitting}>
             <legend className="text-lg font-extrabold tracking-[-0.025em] text-[var(--color-ink)]">
               Complete your investor profile
             </legend>
@@ -200,28 +263,11 @@ export function RegisterForm() {
             </p>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
-              <SelectField error={errors.investmentRange} id="investmentRange" label="Intended investment range" onChange={(value) => updateField("investmentRange", value)} value={data.investmentRange}>
-                <option value="">Select a range</option>
-                <option value="$100–$999">$100–$999</option>
-                <option value="$1,000–$4,999">$1,000–$4,999</option>
-                <option value="$5,000–$24,999">$5,000–$24,999</option>
-                <option value="$25,000+">$25,000+</option>
-              </SelectField>
-              <SelectField error={errors.experience} id="experience" label="Investment experience" onChange={(value) => updateField("experience", value)} value={data.experience}>
-                <option value="">Select experience</option>
-                <option value="New investor">New investor</option>
-                <option value="Some experience">Some experience</option>
-                <option value="Experienced">Experienced</option>
-              </SelectField>
+              <CustomSelect error={errors.investmentRange} id="investmentRange" label="Intended investment range" onChange={(value) => updateField("investmentRange", value)} options={investmentRangeOptions} placeholder="Select a range" value={data.investmentRange} />
+              <CustomSelect error={errors.experience} id="experience" label="Investment experience" onChange={(value) => updateField("experience", value)} options={experienceOptions} placeholder="Select experience" value={data.experience} />
             </div>
             <div className="mt-5">
-              <SelectField error={errors.objective} id="objective" label="Primary investment objective" onChange={(value) => updateField("objective", value)} value={data.objective}>
-                <option value="">Select an objective</option>
-                <option value="Short-term opportunity">Short-term opportunity</option>
-                <option value="Portfolio diversification">Portfolio diversification</option>
-                <option value="Income generation">Income generation</option>
-                <option value="Capital growth">Capital growth</option>
-              </SelectField>
+              <CustomSelect error={errors.objective} id="objective" label="Primary investment objective" onChange={(value) => updateField("objective", value)} options={objectiveOptions} placeholder="Select an objective" value={data.objective} />
             </div>
 
             <dl className="mt-7 grid grid-cols-2 gap-3 rounded-2xl bg-[#f4f8f6] p-4 text-sm sm:grid-cols-4">
@@ -239,20 +285,9 @@ export function RegisterForm() {
           </fieldset>
         )}
 
-        {submitted && (
-          <div aria-live="polite" className="mt-7 flex items-start gap-3 rounded-2xl border border-[#d5a553]/30 bg-[#fff8e9] p-4 text-[#704d16]">
-            <WarningCircle aria-hidden="true" className="mt-0.5 shrink-0" size={21} weight="duotone" />
-            <p className="text-xs leading-5 font-semibold">
-              Your details passed frontend validation, but no account was created and no
-              data was transmitted. Secure submission will be enabled after TradeUply’s
-              first-party registration service is connected.
-            </p>
-          </div>
-        )}
-
         <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           {currentStep > 1 ? (
-            <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-5 text-sm font-extrabold text-[var(--color-ink)] transition hover:border-[var(--color-brand)]" onClick={goBack} type="button">
+            <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-5 text-sm font-extrabold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] disabled:cursor-not-allowed disabled:opacity-50" disabled={isSubmitting} onClick={goBack} type="button">
               <ArrowLeft aria-hidden="true" size={17} weight="bold" />
               Previous
             </button>
@@ -274,13 +309,23 @@ export function RegisterForm() {
               <ArrowRight aria-hidden="true" size={17} weight="bold" />
             </button>
           ) : (
-            <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[var(--color-brand-hover)]" type="submit">
-              <ShieldCheck aria-hidden="true" size={18} weight="duotone" />
-              Create My Account
+            <button className="inline-flex min-h-12 min-w-[12.5rem] items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-6 text-sm font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[var(--color-brand-hover)] disabled:cursor-wait disabled:translate-y-0 disabled:opacity-80" disabled={isSubmitting} type="submit">
+              {isSubmitting ? (
+                <>
+                  <CircleNotch aria-hidden="true" className="animate-spin" size={19} weight="bold" />
+                  Creating account…
+                </>
+              ) : (
+                <>
+                  <ShieldCheck aria-hidden="true" size={18} weight="duotone" />
+                  Create My Account
+                </>
+              )}
             </button>
           )}
         </div>
       </form>
+      )}
     </section>
   );
 }
@@ -322,20 +367,6 @@ function PasswordField({ error, id, label, onChange, onToggle, show, value }: Pa
           {show ? <EyeSlash aria-hidden="true" size={20} /> : <Eye aria-hidden="true" size={20} />}
         </button>
       </div>
-      {error && <FieldMessage error id={`${id}-error`}>{error}</FieldMessage>}
-    </div>
-  );
-}
-
-type SelectFieldProps = { children: ReactNode; error?: string; id: string; label: string; onChange: (value: string) => void; value: string };
-
-function SelectField({ children, error, id, label, onChange, value }: SelectFieldProps) {
-  return (
-    <div>
-      <label className="text-sm font-extrabold text-[var(--color-ink)]" htmlFor={id}>{label}</label>
-      <select aria-describedby={error ? `${id}-error` : undefined} aria-invalid={Boolean(error)} className={`mt-2.5 h-13 w-full rounded-xl border bg-[#f8faf9] px-4 text-sm font-bold text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10 ${error ? "border-[#dc765a]" : "border-[var(--color-border)]"}`} id={id} onChange={(event) => onChange(event.target.value)} value={value}>
-        {children}
-      </select>
       {error && <FieldMessage error id={`${id}-error`}>{error}</FieldMessage>}
     </div>
   );
