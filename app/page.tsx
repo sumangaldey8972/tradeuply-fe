@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { HomeHero } from "@/components/sections/home-hero";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { InvestmentApproach } from "@/components/sections/investment-approach";
@@ -22,6 +23,7 @@ export default function HomePage() {
         <SecurityTransparency />
         <HowItWorks />
       </main>
+      <SiteFooter />
     </>
   );
 }
