@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/layout/site-header";
 import { HomeHero } from "@/components/sections/home-hero";
 import { HowItWorks } from "@/components/sections/how-it-works";
+import { InvestmentApproach } from "@/components/sections/investment-approach";
 import { InvestmentPlans } from "@/components/sections/investment-plans";
 import { MarketsExplorer } from "@/components/sections/markets-explorer";
 import { ProfitCalculator } from "@/components/sections/profit-calculator";
@@ -15,6 +16,7 @@ export default function HomePage() {
         <HomeHero />
         <WhyTradeUply />
         <MarketsExplorer />
+        <InvestmentApproach />
         <InvestmentPlans />
         <ProfitCalculator />
         <SecurityTransparency />
