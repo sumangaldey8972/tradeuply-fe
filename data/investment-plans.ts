@@ -2,7 +2,7 @@ export const investmentPlanTerms = [
   {
     horizonDays: 7,
     id: "essential",
-    minimum: 100,
+    minimum: 50,
     name: "Essential",
     objective: 5,
     risk: "Lower",
@@ -40,11 +40,11 @@ export const investmentPlanTerms = [
     risk: "Higher",
   },
   {
-    horizonDays: 3,
+    horizonDays: 5,
     id: "wealth-select",
-    minimum: 25_000,
+    minimum: 10_000,
     name: "Wealth Select",
-    objective: 25,
+    objective: 21,
     risk: "Personalized",
   },
 ] as const;
