@@ -1,4 +1,4 @@
-export type RegistrationData = {
+export type ClientRegistrationData = {
   ageConfirmed: boolean;
   confirmPassword: string;
   email: string;
@@ -13,7 +13,7 @@ export type RegistrationData = {
   termsAccepted: boolean;
 };
 
-export type RegistrationErrors = Partial<Record<keyof RegistrationData, string>>;
+export type ClientRegistrationErrors = Partial<Record<keyof ClientRegistrationData, string>>;
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,8 +37,8 @@ export function getPasswordStrength(password: string) {
   return checks.filter(Boolean).length;
 }
 
-export function validateRegistrationStep(step: number, data: RegistrationData) {
-  const errors: RegistrationErrors = {};
+export function validateClientRegistrationStep(step: number, data: ClientRegistrationData) {
+  const errors: ClientRegistrationErrors = {};
 
   if (step === 1) {
     if (data.firstName.trim().length < 2) errors.firstName = "Enter your first name.";

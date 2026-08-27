@@ -21,7 +21,17 @@ const accountFeatures = [
   { icon: CheckCircle, text: "Keep account activity in one clear view" },
 ] as const;
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const requestedPath = (await searchParams).returnTo;
+  const returnTo =
+    requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+      ? requestedPath
+      : "/dashboard";
+
   return (
     <main className="mt-[7.5rem] min-h-screen bg-[#f4f8f6] sm:mt-[8.5rem] lg:mt-36">
       <Container className="grid items-center gap-6 py-10 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-8 lg:py-20 xl:grid-cols-2">
@@ -59,7 +69,7 @@ export default function LoginPage() {
           </div>
         </aside>
 
-        <LoginForm />
+        <LoginForm returnTo={returnTo} />
       </Container>
     </main>
   );

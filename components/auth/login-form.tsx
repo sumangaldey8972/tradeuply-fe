@@ -5,10 +5,16 @@ import {
   Eye,
   EyeSlash,
   LockKey,
+  SpinnerGap,
   WarningCircle,
 } from "@phosphor-icons/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+
+import { postJson, ApiRequestError } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import type { ClientLoginResponse } from "@/lib/api/types";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -17,14 +23,16 @@ type LoginErrors = {
   password?: string;
 };
 
-export function LoginForm() {
+export function LoginForm({ returnTo = "/dashboard" }: { returnTo?: string }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors: LoginErrors = {};
 
@@ -38,13 +46,29 @@ export function LoginForm() {
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setSubmitted(false);
       return;
     }
 
     setErrors({});
-    setSubmitted(true);
-    setPassword("");
+    setApiError("");
+    setIsSubmitting(true);
+
+    try {
+      await postJson<ClientLoginResponse, { email: string; password: string }>(
+        API_ENDPOINTS.client.clientLogin,
+        { email: email.trim(), password },
+      );
+      router.replace(returnTo);
+      router.refresh();
+    } catch (error) {
+      setApiError(
+        error instanceof ApiRequestError
+          ? error.message
+          : "We could not log you in. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -90,7 +114,7 @@ export function LoginForm() {
             onChange={(event) => {
               setEmail(event.target.value);
               setErrors((current) => ({ ...current, email: undefined }));
-              setSubmitted(false);
+              setApiError("");
             }}
             placeholder="name@example.com"
             type="email"
@@ -119,7 +143,7 @@ export function LoginForm() {
               onChange={(event) => {
                 setPassword(event.target.value);
                 setErrors((current) => ({ ...current, password: undefined }));
-                setSubmitted(false);
+                setApiError("");
               }}
               type={showPassword ? "text" : "password"}
               value={password}
@@ -144,26 +168,27 @@ export function LoginForm() {
           )}
         </div>
 
-        {submitted && (
+        {apiError && (
           <div
             aria-live="polite"
             className="mt-6 flex items-start gap-3 rounded-2xl border border-[#d5a553]/30 bg-[#fff8e9] p-4 text-[#704d16]"
           >
             <WarningCircle aria-hidden="true" className="mt-0.5 shrink-0" size={21} weight="duotone" />
-            <p className="text-xs leading-5 font-semibold">
-              Your details passed frontend validation, but no login request was sent.
-              Secure authentication will be enabled after TradeUply’s first-party login
-              service is connected.
-            </p>
+            <p className="text-xs leading-5 font-semibold">{apiError}</p>
           </div>
         )}
 
         <button
           className="mt-7 inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-brand)] px-6 text-sm font-extrabold text-white shadow-[0_14px_34px_rgba(6,184,102,0.2)] transition hover:-translate-y-0.5 hover:bg-[var(--color-brand-hover)]"
+          disabled={isSubmitting}
           type="submit"
         >
-          Log In
-          <ArrowRight aria-hidden="true" size={17} weight="bold" />
+          {isSubmitting ? "Logging in…" : "Log In"}
+          {isSubmitting ? (
+            <SpinnerGap aria-hidden="true" className="animate-spin" size={18} />
+          ) : (
+            <ArrowRight aria-hidden="true" size={17} weight="bold" />
+          )}
         </button>
 
         <p className="mt-6 text-center text-sm font-semibold text-[var(--color-text-muted)]">

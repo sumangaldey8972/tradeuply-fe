@@ -10,19 +10,24 @@ import {
   EyeSlash,
   LockKey,
   ShieldCheck,
+  WarningCircle,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
+import { OtpVerification } from "@/components/client/otp-verification";
 import { CustomSelect } from "@/components/ui/custom-select";
+import { ApiRequestError, postJson } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import type { ClientRegistrationResponse, OtpDelivery } from "@/lib/api/types";
 import {
   getPasswordStrength,
-  type RegistrationData,
-  type RegistrationErrors,
-  validateRegistrationStep,
-} from "@/lib/registration-validation";
+  type ClientRegistrationData,
+  type ClientRegistrationErrors,
+  validateClientRegistrationStep,
+} from "@/lib/client-registration-validation";
 
-const initialData: RegistrationData = {
+const initialData: ClientRegistrationData = {
   ageConfirmed: false,
   confirmPassword: "",
   email: "",
@@ -59,30 +64,32 @@ const objectiveOptions = [
   { label: "Capital growth", value: "Capital growth" },
 ] as const;
 
-export function RegisterForm() {
+export function ClientRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [data, setData] = useState<RegistrationData>(initialData);
-  const [errors, setErrors] = useState<RegistrationErrors>({});
+  const [data, setData] = useState<ClientRegistrationData>(initialData);
+  const [errors, setErrors] = useState<ClientRegistrationErrors>({});
+  const [formError, setFormError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpDelivery, setOtpDelivery] = useState<OtpDelivery | null>(null);
+  const [registrationStage, setRegistrationStage] = useState<"form" | "otp" | "complete">("form");
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     stepHeadingRef.current?.focus();
   }, [currentStep]);
 
-  function updateField<K extends keyof RegistrationData>(
+  function updateField<K extends keyof ClientRegistrationData>(
     field: K,
-    value: RegistrationData[K],
+    value: ClientRegistrationData[K],
   ) {
     setData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
-    setSubmitted(false);
+    setFormError("");
   }
 
   function continueToNextStep() {
-    const nextErrors = validateRegistrationStep(currentStep, data);
+    const nextErrors = validateClientRegistrationStep(currentStep, data);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -90,11 +97,13 @@ export function RegisterForm() {
     }
 
     setErrors({});
+    setFormError("");
     setCurrentStep((step) => Math.min(step + 1, steps.length));
   }
 
   function goBack() {
     setErrors({});
+    setFormError("");
     setCurrentStep((step) => Math.max(step - 1, 1));
   }
 
@@ -103,7 +112,7 @@ export function RegisterForm() {
 
     if (isSubmitting) return;
 
-    const nextErrors = validateRegistrationStep(3, data);
+    const nextErrors = validateClientRegistrationStep(3, data);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -111,12 +120,33 @@ export function RegisterForm() {
     }
 
     setErrors({});
+    setFormError("");
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 1600));
-      setSubmitted(true);
+      const response = await postJson<ClientRegistrationResponse, ClientRegistrationData>(
+        API_ENDPOINTS.client.clientRegistration,
+        data,
+      );
+      setOtpDelivery(response.data.otp);
+      setRegistrationStage("otp");
       setData((current) => ({ ...current, confirmPassword: "", password: "" }));
+    } catch (reason) {
+      if (reason instanceof ApiRequestError) {
+        if (Array.isArray(reason.details)) {
+          const fieldErrors = reason.details.reduce<ClientRegistrationErrors>((allErrors, detail) => {
+            if (detail.field in initialData) {
+              allErrors[detail.field as keyof ClientRegistrationData] = detail.message;
+            }
+            return allErrors;
+          }, {});
+          setErrors(fieldErrors);
+        }
+
+        setFormError(reason.message);
+      } else {
+        setFormError("Your account could not be created. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -143,8 +173,8 @@ export function RegisterForm() {
       <ol aria-label="Registration progress" className="mt-8 grid grid-cols-3 gap-2">
         {steps.map((label, index) => {
           const stepNumber = index + 1;
-          const isActive = !submitted && currentStep === stepNumber;
-          const isComplete = submitted || currentStep > stepNumber;
+          const isActive = registrationStage === "form" && currentStep === stepNumber;
+          const isComplete = registrationStage !== "form" || currentStep > stepNumber;
 
           return (
             <li aria-current={isActive ? "step" : undefined} key={label}>
@@ -162,7 +192,7 @@ export function RegisterForm() {
         })}
       </ol>
 
-      {submitted ? (
+      {registrationStage === "complete" ? (
         <div
           aria-live="polite"
           className="mt-10 flex min-h-[25rem] flex-col items-center justify-center rounded-[1.75rem] border border-[var(--color-brand)]/20 bg-[linear-gradient(145deg,#f3fbf7_0%,#ffffff_70%)] px-6 py-12 text-center"
@@ -187,10 +217,13 @@ export function RegisterForm() {
             Continue to Log In
             <ArrowRight aria-hidden="true" size={17} weight="bold" />
           </Link>
-          <p className="mt-5 text-xs font-semibold text-[var(--color-text-muted)]">
-            Demo mode: connect the registration API before launch.
-          </p>
         </div>
+      ) : registrationStage === "otp" && otpDelivery ? (
+        <OtpVerification
+          delivery={otpDelivery}
+          email={data.email.trim().toLowerCase()}
+          onVerified={() => setRegistrationStage("complete")}
+        />
       ) : (
       <form aria-busy={isSubmitting} className="mt-9" noValidate onSubmit={handleSubmit}>
         <h3 className="sr-only" ref={stepHeadingRef} tabIndex={-1}>
@@ -283,6 +316,13 @@ export function RegisterForm() {
               </CheckboxField>
             </div>
           </fieldset>
+        )}
+
+        {formError && (
+          <p className="mt-6 flex items-start gap-2 rounded-xl border border-[#efc1b3] bg-[#fff8f5] px-4 py-3 text-xs leading-5 font-bold text-[#a83f26]" role="alert">
+            <WarningCircle aria-hidden="true" className="mt-0.5 shrink-0" size={17} weight="fill" />
+            {formError}
+          </p>
         )}
 
         <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">

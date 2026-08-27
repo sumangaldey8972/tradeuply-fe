@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { getCurrentClientFromCookies } from "@/lib/auth/current-client";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tradeuply.com"),
@@ -37,11 +38,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const client = await getCurrentClientFromCookies();
+
   return (
     <html lang="en">
       <body>
-        <SiteHeader />
+        <SiteHeader initialClient={client} key={client?.id ?? "guest"} />
         {children}
         <SiteFooter />
       </body>

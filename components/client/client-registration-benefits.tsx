@@ -16,7 +16,7 @@ const benefits = [
   { icon: Headset, label: "Support when you need guidance" },
 ] as const;
 
-export function RegisterBenefits() {
+export function ClientRegistrationBenefits() {
   return (
     <aside className="relative order-2 overflow-hidden rounded-[2rem] bg-[var(--color-ink)] p-6 text-white shadow-[0_30px_80px_rgba(3,26,59,0.18)] sm:p-9 lg:order-1 lg:sticky lg:top-8 lg:p-11">
       <div aria-hidden="true" className="absolute -top-36 -right-28 size-80 rounded-full bg-[var(--color-brand)]/25 blur-3xl" />
