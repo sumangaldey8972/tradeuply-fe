@@ -6,12 +6,19 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { DashboardWallet } from "@/components/deposits/dashboard-wallet";
 import { Container } from "@/components/ui/container";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { requestBackend } from "@/lib/api/proxy";
-import type { AuthenticatedClient } from "@/lib/api/types";
+import type {
+  AuthenticatedClient,
+  ClientBalance,
+  Deposit,
+  PaymentMethod,
+} from "@/lib/api/types";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/session";
 
 export const metadata = {
@@ -38,8 +45,35 @@ async function getClient() {
   return (JSON.parse(result.body) as { data: { client: AuthenticatedClient } }).data.client;
 }
 
+async function getWalletData() {
+  const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+
+  if (!accessToken) redirect("/login?returnTo=/dashboard");
+
+  const authorization = { Authorization: `Bearer ${accessToken}` };
+  const [balanceResult, depositResult, methodResult] = await Promise.all([
+    requestBackend(API_ENDPOINTS.backend.clientBalance, { headers: authorization }),
+    requestBackend(API_ENDPOINTS.backend.clientDeposits, { headers: authorization }),
+    requestBackend(API_ENDPOINTS.backend.clientPaymentMethods, { headers: authorization }),
+  ]);
+
+  if ([balanceResult, depositResult, methodResult].some((result) => result.status === 401)) {
+    redirect("/api/client/token/refresh?returnTo=/dashboard");
+  }
+
+  if ([balanceResult, depositResult, methodResult].some((result) => result.status !== 200)) {
+    throw new Error("The account wallet could not be loaded.");
+  }
+
+  return {
+    balance: (JSON.parse(balanceResult.body) as { data: { balance: ClientBalance } }).data.balance,
+    deposits: (JSON.parse(depositResult.body) as { data: { deposits: Deposit[] } }).data.deposits,
+    methods: (JSON.parse(methodResult.body) as { data: { methods: PaymentMethod[] } }).data.methods,
+  };
+}
+
 export default async function DashboardPage() {
-  const client = await getClient();
+  const [client, walletData] = await Promise.all([getClient(), getWalletData()]);
 
   return (
     <main className="mt-[7.5rem] min-h-screen bg-[#f4f8f6] pb-20 sm:mt-[8.5rem] lg:mt-36">
@@ -55,12 +89,16 @@ export default async function DashboardPage() {
                 Welcome, {client.firstName}.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 font-medium text-white/65 sm:text-base">
-                Your secure TradeUply session is active. Account and investment tools will appear here as they become available.
+                Review your USDT balance, submit a deposit for verification, and follow every status change from one secure workspace.
               </p>
             </div>
             <LogoutButton />
           </div>
         </section>
+
+        <Suspense fallback={<div className="mt-7 h-64 animate-pulse rounded-[1.7rem] bg-white" />}>
+          <DashboardWallet {...walletData} />
+        </Suspense>
 
         <section aria-labelledby="account-overview" className="mt-7 grid gap-5 lg:grid-cols-3">
           <article className="rounded-[1.6rem] border border-[var(--color-border)] bg-white p-6 shadow-[0_18px_55px_rgba(18,45,72,0.07)]">
@@ -85,8 +123,8 @@ export default async function DashboardPage() {
             <ChartLineUp aria-hidden="true" size={25} weight="duotone" />
           </span>
           <div>
-            <h2 className="font-extrabold text-[var(--color-ink)]">Investment workspace</h2>
-            <p className="mt-1 text-sm leading-6 font-medium text-[var(--color-text-muted)]">Portfolio and transaction features will be connected in the next backend phase.</p>
+            <h2 className="font-extrabold text-[var(--color-ink)]">Verified funding workflow</h2>
+            <p className="mt-1 text-sm leading-6 font-medium text-[var(--color-text-muted)]">Submitted USDT transfers remain pending until an authorized administrator verifies the blockchain transaction.</p>
           </div>
         </section>
       </Container>
